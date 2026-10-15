@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>냉토리</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+<div id="app">
+    <header class="topbar">
+        <a class="brand" href="#home-panel">냉토리</a>
+    </header>
+
+    <main id="home-panel">
+        <h1>냉장고 속 재료로<br>오늘 뭐 해먹지?</h1>
+        <p class="lead">있는 재료를 먼저 쓰는 순서대로 레시피를 골라드려요.</p>
+
+        <section class="menu-list" aria-label="주요 메뉴">
+            <button class="menu-card" id="open-fridge" type="button">
+                <span class="menu-icon" aria-hidden="true">냉장고</span>
+                <strong>식재료 보기</strong>
+                <small>내 냉장고를 열어 재료를 추가해요</small>
+            </button>
+
+            <button class="menu-card" id="open-recipes" type="button">
+                <span class="menu-icon" aria-hidden="true">냄비</span>
+                <strong>레시피 랭킹</strong>
+                <small>지금 만들 수 있는 순서로 추천해요</small>
+            </button>
+        </section>
+
+        <section class="counter-scene" aria-label="냉장고 요약">
+            <div>
+                <strong>오늘의 냉장고</strong>
+                <p>재료 <span id="home-ingredient-count">7</span>개</p>
+            </div>
+            <p id="ingredient-preview">계란 · 밥 · 김치 · 양파 · 토마토 · 우유 · 오이</p>
+        </section>
+    </main>
+
+    <section id="fridge-panel" class="panel" hidden>
+        <header class="panel-header">
+            <h2>나의 냉장고</h2>
+            <button id="close-fridge" type="button" aria-label="냉장고 닫기">×</button>
+        </header>
+
+        <div class="fridge-shelf">
+            <p>지금 가지고 있는 식재료</p>
+            <ul id="ingredient-list" aria-live="polite">
+                <li data-food="계란"><button class="ingredient-name" type="button">계란</button><button class="delete-food" type="button" aria-label="계란 삭제">×</button></li>
+                <li data-food="밥"><button class="ingredient-name" type="button">밥</button><button class="delete-food" type="button" aria-label="밥 삭제">×</button></li>
+                <li data-food="김치"><button class="ingredient-name" type="button">김치</button><button class="delete-food" type="button" aria-label="김치 삭제">×</button></li>
+                <li data-food="양파"><button class="ingredient-name" type="button">양파</button><button class="delete-food" type="button" aria-label="양파 삭제">×</button></li>
+                <li data-food="토마토"><button class="ingredient-name" type="button">토마토</button><button class="delete-food" type="button" aria-label="토마토 삭제">×</button></li>
+                <li data-food="우유"><button class="ingredient-name" type="button">우유</button><button class="delete-food" type="button" aria-label="우유 삭제">×</button></li>
+                <li data-food="오이"><button class="ingredient-name" type="button">오이</button><button class="delete-food" type="button" aria-label="오이 삭제">×</button></li>
+            </ul>
+
+            <p>재료 <strong id="ingredient-count">7</strong>개</p>
+            <button id="show-ingredient-form" type="button">식재료 추가하기</button>
+
+            <form id="ingredient-form" hidden>
+                <label for="ingredient-input">추가할 식재료</label>
+                <div class="ingredient-entry">
+                    <input id="ingredient-input" type="text" placeholder="식재료 이름을 적어주세요" autocomplete="off">
+                    <button type="submit">추가</button>
+                </div>
+                <ul id="suggestions" aria-label="추천 식재료" hidden></ul>
+            </form>
+        </div>
+        <p class="panel-note">식재료 이름을 누르면 삭제 버튼이 나타납니다.</p>
+    </section>
+
+    <section id="recipe-panel" class="panel recipe-paper" hidden>
+        <header class="panel-header">
+            <h2>오늘의 냉털 레시피</h2>
+            <button id="close-recipes" type="button" aria-label="레시피 닫기">×</button>
+        </header>
+
+        <ol id="recipe-ranking">
+            <li>
+                <button type="button" data-recipe="김치볶음밥">
+                    <strong>김치볶음밥</strong>
+                    <span>보유 재료 4/4 · 15분</span>
+                    <em>바로 가능</em>
+                </button>
+            </li>
+            <li>
+                <button type="button" data-recipe="토마토 달걀볶음">
+                    <strong>토마토 달걀볶음</strong>
+                    <span>보유 재료 3/3 · 12분</span>
+                    <em>바로 가능</em>
+                </button>
+            </li>
+            <li>
+                <button type="button" data-recipe="계란볶음밥">
+                    <strong>계란볶음밥</strong>
+                    <span>보유 재료 3/4 · 부족: 간장</span>
+                    <em>1개 필요</em>
+                </button>
+            </li>
+            <li>
+                <button type="button" data-recipe="김치찌개">
+                    <strong>김치찌개</strong>
+                    <span>보유 재료 2/5 · 부족: 두부, 돼지고기, 대파</span>
+                    <em>3개 필요</em>
+                </button>
+            </li>
+        </ol>
+
+        <article id="recipe-detail" aria-live="polite">
+            <h3>레시피를 선택해 주세요</h3>
+            <p>선택한 요리의 재료와 조리 순서가 여기에 표시됩니다.</p>
+        </article>
+    </section>
+
+    <div id="delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-title" hidden>
+        <div class="delete-dialog">
+            <h2 id="delete-title"><span id="delete-food-name"></span>, 냉장고에서 없어진 녀석인가요?</h2>
+            <p>삭제하면 현재 식재료 목록에서 빠져요.</p>
+            <div class="dialog-actions">
+                <button id="cancel-delete" type="button">아니오</button>
+                <button id="confirm-delete" type="button">네</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="gulp-toast" role="status" hidden>꿀꺽! 냉장고에서 사라졌어요.</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+.DS_Store
+.idea/
+*.iml
+
+backend/.gradle/
+backend/build/
+
+.env
+.env.*
+backend/src/main/resources/application-local.yml
