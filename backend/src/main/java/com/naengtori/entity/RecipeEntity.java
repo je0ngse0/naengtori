@@ -27,6 +27,9 @@ public class RecipeEntity {
     @Column(nullable = false)
     private int minutes;
 
+    @Column(name = "view_count", nullable = false)
+    private long viewCount;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb", nullable = false)
     private List<String> steps = new ArrayList<>();

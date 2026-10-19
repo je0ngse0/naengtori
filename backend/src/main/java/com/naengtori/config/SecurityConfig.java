@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 
 @Configuration
 @RequiredArgsConstructor
@@ -40,7 +41,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/recipes/popular",
-                                "/api/recipes/search"
+                                "/api/recipes/search",
+                                "/api/recipes/public/*"
                         ).permitAll()
 
                         .requestMatchers("/api/**").authenticated()
@@ -51,6 +53,15 @@ public class SecurityConfig {
                                 .userService(customOAuth2UserService)
                         )
                         .defaultSuccessUrl("/", true)
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler(
+                                new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT)
+                        )
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(

@@ -47,4 +47,21 @@ public class MemberService {
                         )
                 ));
     }
+
+    @Transactional
+    public MemberEntity updateNickname(
+            Long memberId,
+            String nickname
+    ) {
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "회원을 찾을 수 없습니다: " + memberId
+                        )
+                );
+
+        member.updateNickname(nickname.trim());
+
+        return member;
+    }
 }

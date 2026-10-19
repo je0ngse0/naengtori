@@ -27,6 +27,8 @@ body {
         #f5d2da;
 }
 
+body.has-modal { overflow: hidden; }
+
 button, input { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
@@ -879,10 +881,43 @@ li.is-editing .delete-food { display: inline-grid; place-items: center; }
         var(--paper);
 }
 
+.recipe-modal {
+    position: fixed;
+    z-index: 60;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    overflow: auto;
+    background: rgba(72, 37, 49, .42);
+    backdrop-filter: blur(5px);
+}
+
+.recipe-dialog {
+    width: min(960px, 100%);
+    max-height: min(84vh, 820px);
+    padding: 30px;
+    overflow: auto;
+    border: 1px solid rgba(255, 255, 255, .8);
+    border-radius: 28px;
+    box-shadow: 0 28px 80px rgba(69, 31, 45, .34);
+}
+
+.recipe-dialog-body {
+    display: grid;
+    grid-template-columns: minmax(280px, .9fr) minmax(0, 1.1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.recipe-dialog.is-detail-only .recipe-dialog-body { grid-template-columns: 1fr; }
+
 #recipe-ranking {
     display: grid;
     gap: 10px;
     margin-top: 20px;
+    max-height: 600px;
+    overflow: auto;
     counter-reset: rank;
 }
 
@@ -928,6 +963,22 @@ li.is-editing .delete-food { display: inline-grid; place-items: center; }
     padding: 18px;
     border-left: 4px solid var(--pink);
     background: rgba(255, 250, 240, .75);
+}
+
+#recipe-detail h3 {
+    margin: 0 0 10px;
+    color: var(--deep);
+    font: 28px "Jua", sans-serif;
+}
+
+#recipe-detail ol {
+    margin: 18px 0 0;
+    padding-left: 22px;
+}
+
+#recipe-detail li {
+    margin-bottom: 10px;
+    line-height: 1.6;
 }
 
 #delete-modal {
@@ -1001,6 +1052,8 @@ li.is-editing .delete-food { display: inline-grid; place-items: center; }
     .profile-card { grid-template-columns: 1fr; justify-items: center; }
     .profile-info, .profile-fields { width: 100%; }
     .public-recipe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .recipe-dialog-body { grid-template-columns: 1fr; }
+    #recipe-ranking { max-height: 300px; }
 }
 
 @media (max-width: 680px) {
@@ -1036,6 +1089,8 @@ li.is-editing .delete-food { display: inline-grid; place-items: center; }
     .discover-heading { padding: 25px 22px; }
     .discover-symbol { width: 82px; height: 82px; font-size: 42px; }
     .public-recipe-grid { grid-template-columns: 1fr; }
+    .recipe-modal { padding: 10px; }
+    .recipe-dialog { max-height: 92vh; padding: 22px 17px; border-radius: 22px; }
     #recipe-ranking button { grid-template-columns: 34px 1fr; }
     #recipe-ranking em { grid-column: 2; justify-self: start; }
 }

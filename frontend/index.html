@@ -163,13 +163,10 @@
         </header>
 
         <form id="profile-edit-form" class="profile-card edit-card">
-            <label class="profile-photo editable-photo" for="profile-image-input">
-                <img id="profile-image-preview" alt="변경할 프로필 이미지 미리보기">
+            <div class="profile-photo">
+                <img id="profile-image-preview" alt="현재 프로필 이미지">
                 <span class="profile-fallback">🥕</span>
-                <span class="camera-badge" aria-hidden="true">📷</span>
-                <span class="sr-only">프로필 이미지 변경</span>
-            </label>
-            <input id="profile-image-input" name="profileImage" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            </div>
 
             <div class="profile-fields">
                 <label for="nickname-input">닉네임</label>
@@ -182,6 +179,7 @@
                     <span>연결된 계정</span>
                     <strong id="edit-provider" class="provider-badge">-</strong>
                 </div>
+                <p class="field-note">프로필 이미지는 현재 연결된 소셜 계정의 이미지를 사용해요.</p>
                 <p class="field-note">연결된 소셜 계정은 여기에서 변경할 수 없어요.</p>
             </div>
 
@@ -218,17 +216,22 @@
         <p class="panel-note">식재료 이름을 누르면 삭제 버튼이 나타납니다.</p>
     </section>
 
-    <section id="recipe-panel" class="panel recipe-paper" hidden>
-        <header class="panel-header">
-            <h2>오늘의 냉털 레시피</h2>
-            <button id="close-recipes" class="close-panel" type="button" aria-label="레시피 닫기">×</button>
-        </header>
+    <section id="recipe-panel" class="recipe-modal" role="dialog" aria-modal="true"
+             aria-labelledby="recipe-dialog-title" hidden>
+        <div class="recipe-dialog recipe-paper">
+            <header class="panel-header">
+                <h2 id="recipe-dialog-title">오늘의 냉털 레시피</h2>
+                <button id="close-recipes" class="close-panel" type="button" aria-label="레시피 닫기">×</button>
+            </header>
 
-        <ol id="recipe-ranking"></ol>
-        <article id="recipe-detail" aria-live="polite">
-            <h3>레시피를 선택해 주세요</h3>
-            <p>선택한 요리의 재료와 조리 순서가 여기에 표시됩니다.</p>
-        </article>
+            <div class="recipe-dialog-body">
+                <ol id="recipe-ranking"></ol>
+                <article id="recipe-detail" aria-live="polite">
+                    <h3>레시피를 선택해 주세요</h3>
+                    <p>선택한 요리의 재료와 조리 순서가 여기에 표시됩니다.</p>
+                </article>
+            </div>
+        </div>
     </section>
 
     <div id="delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-title" hidden>

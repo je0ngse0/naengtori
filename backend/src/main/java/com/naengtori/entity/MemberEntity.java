@@ -78,9 +78,8 @@ public class MemberEntity {
         this.lastLoginAt = OffsetDateTime.now();
     }
 
-    public void updateProfile(String nickname, String profileImageUrl) {
+    public void updateNickname(String nickname) {
         this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
         this.updatedAt = OffsetDateTime.now();
     }
 }

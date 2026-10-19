@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "fridge_ingredients",
         uniqueConstraints = @UniqueConstraint(
-                columnNames = "ingredient_id"
+                columnNames = {"member_id", "ingredient_id"}
         )
 )
 public class FridgeIngredientEntity {
@@ -21,10 +21,18 @@ public class FridgeIngredientEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "member_id", nullable = false)
+    private MemberEntity member;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ingredient_id", nullable = false)
     private IngredientEntity ingredient;
 
-    public FridgeIngredientEntity(IngredientEntity ingredient) {
+    public FridgeIngredientEntity(
+            MemberEntity member,
+            IngredientEntity ingredient
+    ) {
+        this.member = member;
         this.ingredient = ingredient;
     }
 }

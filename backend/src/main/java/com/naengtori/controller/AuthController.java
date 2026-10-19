@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.naengtori.dto.CsrfTokenResponse;
 import org.springframework.security.web.csrf.CsrfToken;
+import com.naengtori.dto.UpdateNicknameRequest;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,14 +34,7 @@ public class AuthController {
 
         MemberEntity member = memberService.findMemberById(memberId);
 
-        return new CurrentMemberResponse(
-                true,
-                member.getId(),
-                member.getProvider().name(),
-                member.getEmail(),
-                member.getNickname(),
-                member.getProfileImageUrl()
-        );
+        return toResponse(member);
     }
 
     @GetMapping("/csrf")
@@ -45,6 +42,34 @@ public class AuthController {
         return new CsrfTokenResponse(
                 csrfToken.getHeaderName(),
                 csrfToken.getToken()
+        );
+    }
+
+    @PatchMapping("/me")
+    public CurrentMemberResponse updateNickname(
+            @AuthenticationPrincipal OAuth2User principal,
+            @Valid @RequestBody UpdateNicknameRequest request
+    ) {
+        Long memberId = principal.getAttribute(
+                OAuth2Constants.MEMBER_ID
+        );
+
+        MemberEntity member = memberService.updateNickname(
+                memberId,
+                request.nickname()
+        );
+
+        return toResponse(member);
+    }
+
+    private CurrentMemberResponse toResponse(MemberEntity member) {
+        return new CurrentMemberResponse(
+                true,
+                member.getId(),
+                member.getProvider().name(),
+                member.getEmail(),
+                member.getNickname(),
+                member.getProfileImageUrl()
         );
     }
 }

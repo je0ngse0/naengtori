@@ -30,7 +30,6 @@ let csrf = null;
 let ingredients = [];
 let recommendations = [];
 let pending = null;
-let previewImageUrl = null;
 let toastTimer = null;
 let recipeReturnPage = 'my';
 
@@ -38,6 +37,7 @@ function closePanels() {
     [profilePanel, profileEditPanel, fridge, recipes].forEach(panel => {
         panel.hidden = true;
     });
+    document.body.classList.remove('has-modal');
 }
 
 function showLogin() {
@@ -72,6 +72,9 @@ function showDiscover() {
 function openPanel(panel) {
     closePanels();
     panel.hidden = false;
+    if (panel === recipes) {
+        document.body.classList.add('has-modal');
+    }
 }
 
 function setActiveNav(active) {
@@ -236,22 +239,6 @@ $('#cancel-profile-edit').addEventListener('click', () => {
     openPanel(profilePanel);
 });
 
-$('#profile-image-input').addEventListener('change', event => {
-    const [file] = event.target.files;
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-        event.target.value = '';
-        $('#profile-save-message').textContent = '5MB 이하의 이미지를 선택해 주세요.';
-        return;
-    }
-
-    if (previewImageUrl) URL.revokeObjectURL(previewImageUrl);
-    previewImageUrl = URL.createObjectURL(file);
-    setImage($('#profile-image-preview'), previewImageUrl);
-    $('#profile-save-message').textContent = '새 프로필 이미지가 선택됐어요.';
-});
-
 $('#profile-edit-form').addEventListener('submit', async event => {
     event.preventDefault();
 
@@ -261,16 +248,13 @@ $('#profile-edit-form').addEventListener('submit', async event => {
         return;
     }
 
-    const body = new FormData();
-    body.append('nickname', nickname);
-    const [profileImage] = $('#profile-image-input').files;
-    if (profileImage) body.append('profileImage', profileImage);
-
     try {
         const response = await fetch(AUTH_API, {
             method: 'PATCH',
-            headers: await csrfHeaders(),
-            body
+            headers: await csrfHeaders({
+                'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify({ nickname })
         });
 
         if (response.status === 401 || response.status === 403) {
@@ -283,12 +267,11 @@ $('#profile-edit-form').addEventListener('submit', async event => {
         }
 
         applyMember(await response.json());
-        $('#profile-image-input').value = '';
         $('#profile-save-message').textContent = '';
         showToast('프로필을 저장했어요.');
         openPanel(profilePanel);
     } catch (error) {
-        $('#profile-save-message').textContent = '아직 프로필 저장 API가 연결되지 않았어요.';
+        $('#profile-save-message').textContent = '프로필을 저장하지 못했어요.';
     }
 });
 
@@ -313,6 +296,8 @@ $('#open-fridge').addEventListener('click', async () => {
 $('#open-recipes').addEventListener('click', async () => {
     recipeReturnPage = 'my';
     $('#recipe-panel .panel-header h2').textContent = '오늘의 냉털 레시피';
+    recipes.querySelector('.recipe-dialog').classList.remove('is-detail-only');
+    $('#recipe-ranking').hidden = false;
     openPanel(recipes);
     await loadRecipes();
 });
@@ -323,6 +308,18 @@ $('#close-recipes').addEventListener('click', () => {
         closePanels();
     } else {
         showHome();
+    }
+});
+
+recipes.addEventListener('click', event => {
+    if (event.target === recipes) {
+        $('#close-recipes').click();
+    }
+});
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !recipes.hidden) {
+        $('#close-recipes').click();
     }
 });
 
@@ -574,19 +571,35 @@ function renderPublicRecipes(found) {
         icon.className = 'recipe-card-icon';
         icon.textContent = recipeIcon(recipe.name || '');
         name.textContent = recipe.name;
-        summary.textContent = ingredientNames.length
+        const viewText = Number.isFinite(recipe.viewCount)
+            ? '조회 ' + recipe.viewCount.toLocaleString('ko-KR') + '회'
+            : '';
+        const ingredientText = ingredientNames.length
             ? ingredientNames.slice(0, 5).join(' · ')
             : (recipe.minutes ? recipe.minutes + '분 레시피' : '레시피 자세히 보기');
+        summary.textContent = [viewText, ingredientText].filter(Boolean).join(' · ');
 
         button.append(icon, name, summary);
-        button.addEventListener('click', () => {
-            recipeReturnPage = 'discover';
-            openPanel(recipes);
-            showRecipe(recipe, false);
-        });
+        button.addEventListener('click', () => openPublicRecipe(recipe));
         item.append(button);
         return item;
     }));
+}
+
+async function openPublicRecipe(recipe) {
+    recipeReturnPage = 'discover';
+    openPanel(recipes);
+    showRecipe(recipe, false);
+
+    try {
+        const response = await fetch(API + '/recipes/public/' + recipe.id, {
+            headers: { Accept: 'application/json' }
+        });
+        if (!response.ok) throw new Error();
+        showRecipe(await response.json(), false);
+    } catch (error) {
+        showToast('최신 레시피 정보를 불러오지 못했어요.');
+    }
 }
 
 async function loadRecipes() {
@@ -624,10 +637,25 @@ function renderRecipes() {
         fit.className = missing.length ? 'need' : '';
         copy.append(name, info);
         button.append(copy, fit);
-        button.addEventListener('click', () => showRecipe(recipe));
+        button.addEventListener('click', () => {
+            showRecipe(recipe);
+            trackRecipeView(recipe.id);
+        });
         item.append(button);
         return item;
     }));
+}
+
+async function trackRecipeView(recipeId) {
+    if (!recipeId) return;
+
+    try {
+        await fetch(API + '/recipes/public/' + recipeId, {
+            headers: { Accept: 'application/json' }
+        });
+    } catch (error) {
+        // 조회수 기록 실패가 레시피 확인을 방해하지 않게 합니다.
+    }
 }
 
 function showRecipe(recipe, personalized = true) {
@@ -637,6 +665,9 @@ function showRecipe(recipe, personalized = true) {
     const steps = document.createElement('ol');
     const missing = recipe.missingIngredients || [];
     const ingredientNames = recipeIngredients(recipe);
+
+    recipes.querySelector('.recipe-dialog').classList.toggle('is-detail-only', !personalized);
+    $('#recipe-ranking').hidden = !personalized;
 
     $('#recipe-panel .panel-header h2').textContent = personalized
         ? '오늘의 냉털 레시피'
