@@ -4,6 +4,7 @@ import com.naengtori.dto.Ingredient;
 import com.naengtori.dto.RecipeRecommendation;
 import com.naengtori.entity.RecipeEntity;
 import com.naengtori.repository.RecipeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,19 +14,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RecipeService {
 
     private final IngredientService ingredientService;
     private final RecipeRepository recipeRepository;
-
-    public RecipeService(
-            IngredientService ingredientService,
-            RecipeRepository recipeRepository
-    ) {
-        this.ingredientService = ingredientService;
-        this.recipeRepository = recipeRepository;
-    }
 
     public List<RecipeRecommendation> recommend() {
         Set<String> owned = ingredientService.findAll()

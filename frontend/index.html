@@ -10,55 +10,200 @@
 <body>
 <div id="app">
     <header class="topbar">
-        <a class="brand" href="#home-panel">냉토리</a>
+        <a id="brand-home" class="brand" href="#my-naengtori" aria-label="냉토리 홈">
+            <span class="brand-mark" aria-hidden="true"></span>
+            냉토리
+        </a>
+
+        <nav class="main-nav" aria-label="주요 메뉴">
+            <button id="nav-my-naengtori" class="nav-link is-active" type="button">나의 냉토리</button>
+            <span class="nav-divider" aria-hidden="true"></span>
+            <button id="nav-popular-recipes" class="nav-link" type="button">인기 레시피</button>
+        </nav>
+
+        <form id="recipe-search-form" class="header-search" role="search">
+            <label class="sr-only" for="recipe-search-input">재료로 레시피 검색</label>
+            <input id="recipe-search-input" type="search" placeholder="재료를 검색해보세요" autocomplete="off">
+            <button type="submit" aria-label="검색">⌕</button>
+        </form>
+
+        <button id="open-profile" class="profile-trigger" type="button" hidden>
+            <span class="profile-thumb" aria-hidden="true">
+                <img id="header-profile-image" alt="">
+                <span class="profile-fallback">🥕</span>
+            </span>
+            <span id="header-nickname">냉토리님</span>
+            <span aria-hidden="true">⌄</span>
+        </button>
     </header>
 
-    <main id="home-panel">
-        <h1>냉장고 속 재료로<br>오늘 뭐 해먹지?</h1>
-        <p class="lead">있는 재료를 먼저 쓰는 순서대로 레시피를 골라드려요.</p>
+    <main>
+        <section id="login-panel" class="page login-page">
+            <div class="login-illustration" aria-hidden="true">
+                <span class="floating-heart heart-one">♥</span>
+                <span class="floating-heart heart-two">♥</span>
+                <div class="fridge-art">
+                    <div class="fridge-freezer"></div>
+                    <div class="fridge-food">🥬<br>🍅 🥚<br>🥛</div>
+                    <span class="fridge-handle"></span>
+                </div>
+                <div class="pot-art">🍲</div>
+            </div>
 
-        <section class="menu-list" aria-label="주요 메뉴">
-            <button class="menu-card" id="open-fridge" type="button">
-                <span class="menu-icon" aria-hidden="true">냉장고</span>
-                <strong>식재료 보기</strong>
-                <small>내 냉장고를 열어 재료를 추가해요</small>
-            </button>
+            <div class="login-content">
+                <p class="eyebrow">나만의 냉장고 레시피</p>
+                <h1>냉장고 속 재료로<br>오늘 뭐 해먹지?</h1>
+                <p class="lead">로그인하고 나만의 냉장고를 시작해요.</p>
 
-            <button class="menu-card" id="open-recipes" type="button">
-                <span class="menu-icon" aria-hidden="true">냄비</span>
-                <strong>레시피 랭킹</strong>
-                <small>지금 만들 수 있는 순서로 추천해요</small>
-            </button>
+                <div class="social-login-list" aria-label="소셜 로그인">
+                    <a class="social-button kakao" href="/oauth2/authorization/kakao">
+                        <span aria-hidden="true">K</span>
+                        카카오로 시작하기
+                    </a>
+                    <a class="social-button naver" href="/oauth2/authorization/naver">
+                        <span aria-hidden="true">N</span>
+                        네이버로 시작하기
+                    </a>
+                </div>
+
+                <p class="login-note"><span aria-hidden="true">🔒</span> 안전한 소셜 로그인으로 내 정보는 소중하게 보호돼요.</p>
+            </div>
         </section>
 
-        <section class="counter-scene" aria-label="냉장고 요약">
-            <div>
-                <strong>오늘의 냉장고</strong>
-                <p>재료 <span id="home-ingredient-count">7</span>개</p>
+        <section id="home-panel" class="page home-page" hidden>
+            <div class="home-heading">
+                <div>
+                    <p class="eyebrow">오늘도 냉장고를 부탁해</p>
+                    <h1><span id="home-nickname">냉토리</span>님,<br>오늘도 맛있는 하루 되세요!</h1>
+                </div>
+                <div class="kitchen-scene" aria-hidden="true">
+                    <span>🥄</span><span>🥕</span><span>🌿</span>
+                </div>
             </div>
-            <p id="ingredient-preview">계란 · 밥 · 김치 · 양파 · 토마토 · 우유 · 오이</p>
+
+            <section class="menu-list" aria-label="주요 메뉴">
+                <button class="menu-card ingredients-card" id="open-fridge" type="button">
+                    <span class="menu-icon" aria-hidden="true">🥕 🥬 🥛</span>
+                    <strong>식재료 보기 <span aria-hidden="true">›</span></strong>
+                    <small>냉장고 속 식재료를 추가하고 관리해보세요!</small>
+                </button>
+
+                <button class="menu-card recipes-card" id="open-recipes" type="button">
+                    <span class="menu-icon" aria-hidden="true">🍲</span>
+                    <strong>레시피 랭킹 <span aria-hidden="true">›</span></strong>
+                    <small>지금 만들 수 있는 순서로 추천해요</small>
+                </button>
+            </section>
+
+            <section class="counter-scene" aria-label="냉장고 요약">
+                <div class="counter-title">
+                    <span class="mini-fridge" aria-hidden="true"></span>
+                    <strong>내 냉장고 현황</strong>
+                </div>
+                <div class="counter-copy">
+                    <p>보관 중인 재료 <strong><span id="home-ingredient-count">0</span>개</strong></p>
+                    <p id="ingredient-preview">냉장고를 확인하는 중이에요.</p>
+                </div>
+            </section>
+        </section>
+
+        <section id="discover-panel" class="page discover-page" hidden>
+            <div class="discover-heading">
+                <div>
+                    <p id="discover-eyebrow" class="eyebrow">로그인 없이 둘러보기</p>
+                    <h1 id="discover-title">지금 인기 있는 레시피</h1>
+                    <p id="discover-description" class="lead">냉토리에서 사람들이 많이 찾는 요리를 만나보세요.</p>
+                </div>
+                <span class="discover-symbol" aria-hidden="true">🍽️</span>
+            </div>
+
+            <div id="public-recipe-status" class="recipe-status" role="status">인기 레시피를 불러오는 중이에요.</div>
+            <ol id="public-recipe-list" class="public-recipe-grid" aria-live="polite"></ol>
         </section>
     </main>
+
+    <section id="profile-panel" class="panel profile-panel" hidden>
+        <header class="panel-header">
+            <h2>내 프로필 <span aria-hidden="true">♥</span></h2>
+            <button class="close-panel" type="button" aria-label="프로필 닫기">×</button>
+        </header>
+
+        <div class="profile-card">
+            <div class="profile-photo large-profile-photo">
+                <img id="profile-image" alt="사용자 프로필 이미지">
+                <span class="profile-fallback">🥕</span>
+            </div>
+
+            <dl class="profile-info">
+                <div>
+                    <dt>닉네임</dt>
+                    <dd id="profile-nickname">-</dd>
+                </div>
+                <div>
+                    <dt>이메일</dt>
+                    <dd id="profile-email">제공되지 않음</dd>
+                </div>
+                <div>
+                    <dt>연결된 계정</dt>
+                    <dd><span id="profile-provider" class="provider-badge">-</span></dd>
+                </div>
+            </dl>
+
+            <div class="profile-actions">
+                <button id="open-profile-edit" class="primary-button" type="button">프로필 편집</button>
+                <button id="logout-button" class="secondary-button" type="button">로그아웃</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="profile-edit-panel" class="panel profile-panel" hidden>
+        <header class="panel-header">
+            <h2>프로필 편집 <span aria-hidden="true">♥</span></h2>
+            <button class="close-panel" type="button" aria-label="프로필 편집 닫기">×</button>
+        </header>
+
+        <form id="profile-edit-form" class="profile-card edit-card">
+            <label class="profile-photo editable-photo" for="profile-image-input">
+                <img id="profile-image-preview" alt="변경할 프로필 이미지 미리보기">
+                <span class="profile-fallback">🥕</span>
+                <span class="camera-badge" aria-hidden="true">📷</span>
+                <span class="sr-only">프로필 이미지 변경</span>
+            </label>
+            <input id="profile-image-input" name="profileImage" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+
+            <div class="profile-fields">
+                <label for="nickname-input">닉네임</label>
+                <input id="nickname-input" name="nickname" type="text" maxlength="30" required>
+
+                <label for="email-input">이메일</label>
+                <input id="email-input" type="email" readonly>
+
+                <div class="connected-account">
+                    <span>연결된 계정</span>
+                    <strong id="edit-provider" class="provider-badge">-</strong>
+                </div>
+                <p class="field-note">연결된 소셜 계정은 여기에서 변경할 수 없어요.</p>
+            </div>
+
+            <p id="profile-save-message" class="form-message" role="status"></p>
+            <div class="profile-actions">
+                <button class="primary-button" type="submit">저장하기</button>
+                <button id="cancel-profile-edit" class="secondary-button" type="button">취소</button>
+            </div>
+        </form>
+    </section>
 
     <section id="fridge-panel" class="panel" hidden>
         <header class="panel-header">
             <h2>나의 냉장고</h2>
-            <button id="close-fridge" type="button" aria-label="냉장고 닫기">×</button>
+            <button id="close-fridge" class="close-panel" type="button" aria-label="냉장고 닫기">×</button>
         </header>
 
         <div class="fridge-shelf">
             <p>지금 가지고 있는 식재료</p>
-            <ul id="ingredient-list" aria-live="polite">
-                <li data-food="계란"><button class="ingredient-name" type="button">계란</button><button class="delete-food" type="button" aria-label="계란 삭제">×</button></li>
-                <li data-food="밥"><button class="ingredient-name" type="button">밥</button><button class="delete-food" type="button" aria-label="밥 삭제">×</button></li>
-                <li data-food="김치"><button class="ingredient-name" type="button">김치</button><button class="delete-food" type="button" aria-label="김치 삭제">×</button></li>
-                <li data-food="양파"><button class="ingredient-name" type="button">양파</button><button class="delete-food" type="button" aria-label="양파 삭제">×</button></li>
-                <li data-food="토마토"><button class="ingredient-name" type="button">토마토</button><button class="delete-food" type="button" aria-label="토마토 삭제">×</button></li>
-                <li data-food="우유"><button class="ingredient-name" type="button">우유</button><button class="delete-food" type="button" aria-label="우유 삭제">×</button></li>
-                <li data-food="오이"><button class="ingredient-name" type="button">오이</button><button class="delete-food" type="button" aria-label="오이 삭제">×</button></li>
-            </ul>
+            <ul id="ingredient-list" aria-live="polite"></ul>
 
-            <p>재료 <strong id="ingredient-count">7</strong>개</p>
+            <p>재료 <strong id="ingredient-count">0</strong>개</p>
             <button id="show-ingredient-form" type="button">식재료 추가하기</button>
 
             <form id="ingredient-form" hidden>
@@ -76,40 +221,10 @@
     <section id="recipe-panel" class="panel recipe-paper" hidden>
         <header class="panel-header">
             <h2>오늘의 냉털 레시피</h2>
-            <button id="close-recipes" type="button" aria-label="레시피 닫기">×</button>
+            <button id="close-recipes" class="close-panel" type="button" aria-label="레시피 닫기">×</button>
         </header>
 
-        <ol id="recipe-ranking">
-            <li>
-                <button type="button" data-recipe="김치볶음밥">
-                    <strong>김치볶음밥</strong>
-                    <span>보유 재료 4/4 · 15분</span>
-                    <em>바로 가능</em>
-                </button>
-            </li>
-            <li>
-                <button type="button" data-recipe="토마토 달걀볶음">
-                    <strong>토마토 달걀볶음</strong>
-                    <span>보유 재료 3/3 · 12분</span>
-                    <em>바로 가능</em>
-                </button>
-            </li>
-            <li>
-                <button type="button" data-recipe="계란볶음밥">
-                    <strong>계란볶음밥</strong>
-                    <span>보유 재료 3/4 · 부족: 간장</span>
-                    <em>1개 필요</em>
-                </button>
-            </li>
-            <li>
-                <button type="button" data-recipe="김치찌개">
-                    <strong>김치찌개</strong>
-                    <span>보유 재료 2/5 · 부족: 두부, 돼지고기, 대파</span>
-                    <em>3개 필요</em>
-                </button>
-            </li>
-        </ol>
-
+        <ol id="recipe-ranking"></ol>
         <article id="recipe-detail" aria-live="polite">
             <h3>레시피를 선택해 주세요</h3>
             <p>선택한 요리의 재료와 조리 순서가 여기에 표시됩니다.</p>
@@ -127,7 +242,7 @@
         </div>
     </div>
 
-    <div id="gulp-toast" role="status" hidden>꿀꺽! 냉장고에서 사라졌어요.</div>
+    <div id="gulp-toast" role="status" hidden></div>
 </div>
 </body>
 </html>
