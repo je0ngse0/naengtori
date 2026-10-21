@@ -1,0 +1,156 @@
+name: CD
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: naengtori-production-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: naengtori
+          POSTGRES_USER: naengtori
+          POSTGRES_PASSWORD: test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U naengtori -d naengtori"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_PASSWORD: test-password
+      KAKAO_CLIENT_ID: test-kakao-client-id
+      KAKAO_CLIENT_SECRET: test-kakao-client-secret
+      NAVER_CLIENT_ID: test-naver-client-id
+      NAVER_CLIENT_SECRET: test-naver-client-secret
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            backend/*.gradle*
+            backend/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Run tests
+        working-directory: backend
+        run: ./gradlew test --no-daemon
+
+      - name: Build executable JAR
+        working-directory: backend
+        run: ./gradlew bootJar --no-daemon
+
+      - name: Prepare deployment artifact
+        run: |
+          JAR_FILE=$(find backend/build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' -print -quit)
+          test -n "$JAR_FILE"
+          mkdir -p deployment
+          cp "$JAR_FILE" deployment/naengtori.jar
+          ls -lh deployment/naengtori.jar
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: naengtori-deploy-${{ github.run_id }}
+          role-duration-seconds: 900
+          mask-aws-account-id: true
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Upload JAR to S3
+        run: >
+          aws s3 cp deployment/naengtori.jar
+          "s3://${{ vars.DEPLOY_BUCKET }}/releases/${{ github.sha }}/naengtori.jar"
+          --only-show-errors
+
+      - name: Send deployment command
+        id: send-command
+        env:
+          ARTIFACT_URI: s3://${{ vars.DEPLOY_BUCKET }}/releases/${{ github.sha }}/naengtori.jar
+        run: |
+          PARAMETERS=$(jq -n --arg artifact_uri "$ARTIFACT_URI" '{
+            commands: [
+              "set -euo pipefail",
+              ("ARTIFACT_URI=" + ($artifact_uri | @sh)),
+              "CURRENT_JAR=/home/ec2-user/naengtori.jar",
+              "NEW_JAR=/home/ec2-user/naengtori.jar.new",
+              "BACKUP_JAR=/home/ec2-user/naengtori.jar.previous",
+              "aws s3 cp \"$ARTIFACT_URI\" \"$NEW_JAR\" --only-show-errors",
+              "test -s \"$NEW_JAR\"",
+              "if [ -f \"$CURRENT_JAR\" ]; then cp -p \"$CURRENT_JAR\" \"$BACKUP_JAR\"; chown --reference=\"$CURRENT_JAR\" \"$NEW_JAR\"; chmod --reference=\"$CURRENT_JAR\" \"$NEW_JAR\"; else chown ec2-user:ec2-user \"$NEW_JAR\"; chmod 640 \"$NEW_JAR\"; fi",
+              "mv -f \"$NEW_JAR\" \"$CURRENT_JAR\"",
+              "DEPLOY_FAILED=0",
+              "systemctl restart naengtori || DEPLOY_FAILED=1",
+              "sleep 20",
+              "systemctl is-active --quiet naengtori || DEPLOY_FAILED=1",
+              "if [ \"$DEPLOY_FAILED\" -ne 0 ]; then journalctl -u naengtori -n 50 --no-pager || true; if [ -f \"$BACKUP_JAR\" ]; then cp -p \"$BACKUP_JAR\" \"$CURRENT_JAR\"; systemctl restart naengtori || true; fi; exit 1; fi",
+              "systemctl --no-pager --full status naengtori",
+              "journalctl -u naengtori -n 30 --no-pager || true"
+            ]
+          }')
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ vars.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy Naengtori ${{ github.sha }}" \
+            --parameters "$PARAMETERS" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for deployment command
+        id: wait-command
+        continue-on-error: true
+        run: >
+          aws ssm wait command-executed
+          --command-id "${{ steps.send-command.outputs.command_id }}"
+          --instance-id "${{ vars.EC2_INSTANCE_ID }}"
+
+      - name: Check deployment result
+        if: always() && steps.send-command.outputs.command_id != ''
+        env:
+          COMMAND_ID: ${{ steps.send-command.outputs.command_id }}
+        run: |
+          RESULT=$(aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ vars.EC2_INSTANCE_ID }}" \
+            --output json)
+
+          echo "$RESULT" | jq '{
+            Status,
+            ResponseCode,
+            StandardOutputContent,
+            StandardErrorContent
+          }'
+
+          STATUS=$(echo "$RESULT" | jq -r '.Status')
+
+          if [ "$STATUS" != "Success" ]; then
+            echo "::error::Deployment failed with SSM status: $STATUS"
+            exit 1
+          fi
